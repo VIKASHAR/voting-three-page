@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Vote — LENA Supply Chain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #f8fafc;
+      --card:   #ffffff;
+      --border: rgba(0,0,0,0.09);
+      --muted:  rgba(0,0,0,0.04);
+      --text:   #0f172a;
+      --sub:    rgba(15,23,42,0.55);
+      --blue:   #005591;
+      --cyan:   #00bcd4;
+      --red:    #ef4444;
+      --green:  #22c55e;
+      --amber:  #f59e0b;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "DM Sans", "Segoe UI", sans-serif;
+      min-height: 100vh;
+      padding-bottom: 48px;
+    }
+
+    /* ── Lina banner ── */
+    .host-banner {
+      background: linear-gradient(135deg, #005591 0%, #00bcd4 100%);
+      padding: 0 20px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .host-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+    }
+    .host-name {
+      font-size: 18px;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.06em;
+    }
+    .host-divider {
+      width: 1px;
+      height: 22px;
+      background: rgba(255,255,255,0.3);
+    }
+    .host-role {
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.65);
+      letter-spacing: 0.06em;
+    }
+
+    .wrap { max-width: 440px; margin: 0 auto; padding: 24px 16px 0; }
+
+    /* ── Title ── */
+    .eyebrow {
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 6px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: var(--sub);
+      margin-bottom: 20px;
+    }
+
+    /* ── Status card ── */
+    .status-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--cyan);
+    }
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    .status-dot.closed { background: var(--amber); animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .vote-count {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--sub);
+      font-family: monospace;
+    }
+
+    /* ── Scenario cards ── */
+    .scenario-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      cursor: pointer;
+      transition: border-color 0.3s, box-shadow 0.3s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    .scenario-card:active { transform: scale(0.985); }
+    .scenario-card.disabled { cursor: not-allowed; }
+
+    .sc-top {
+      padding: 18px 18px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sc-left { display: flex; align-items: center; gap: 13px; }
+    .sc-avatar {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 19px; color: #fff;
+      flex-shrink: 0;
+    }
+    .sc-name { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
+    .sc-loc  { font-size: 12px; color: var(--sub); }
+    .check-icon { font-size: 24px; display: none; }
+    .scenario-card.voted .check-icon { display: block; }
+
+    .sc-bottom {
+      padding: 10px 18px 15px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .sc-stats { flex: 1; }
+    .sc-nums {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .sc-bar-track { height: 6px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+    .sc-bar-fill { height: 100%; border-radius: 99px; transition: width 0.5s ease; }
+
+    .vote-btn {
+      flex-shrink: 0;
+      padding: 9px 22px;
+      border: none;
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .vote-btn:active { transform: scale(0.93); }
+    .vote-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .voted-label {
+      flex-shrink: 0;
+      padding: 9px 16px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+      display: none;
+    }
+    .scenario-card.voted .voted-label { display: block; }
+    .scenario-card.voted .vote-btn   { display: none; }
+
+    /* ── Banners ── */
+    .closed-banner {
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.3);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 8px;
+      display: none;
+    }
+    .closed-banner.show { display: block; }
+    .closed-banner .cb-icon { font-size: 28px; margin-bottom: 8px; }
+    .closed-banner .cb-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .closed-banner .cb-sub { font-size: 12px; color: var(--sub); }
+
+    .thanks-banner {
+      border-radius: 14px;
+      padding: 14px 18px;
+      text-align: center;
+      margin-top: 4px;
+      display: none;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .thanks-banner.show { display: block; }
+
+    /* ── WS lost ── */
+    #ws-lost {
+      display: none;
+      position: fixed;
+      bottom: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(239,68,68,0.9); color: #fff;
+      padding: 10px 22px; border-radius: 99px;
+      font-size: 13px; font-weight: 700;
+      backdrop-filter: blur(8px);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Lina host banner -->
+<div class="host-banner">
+  <div class="host-label">Hosted by</div>
+  <div class="host-divider"></div>
+  <div class="host-name">LINA</div>
+  <div class="host-divider"></div>
+  <div class="host-role">Supply Chain AI · Live Demo</div>
+</div>
+
+<div class="wrap">
+  <p class="eyebrow">Live Audience Vote</p>
+  <h1 id="main-title">Choose a Scenario</h1>
+  <p class="subtitle" id="main-sub">Tap a scenario below to cast your vote</p>
+
+  <!-- Status -->
+  <div class="status-card">
+    <div class="status-left">
+      <div class="status-dot" id="status-dot"></div>
+      <span id="total-label">0 votes cast</span>
+    </div>
+    <span class="vote-count" id="vote-status">Voting open</span>
+  </div>
+
+  <!-- Scenario cards -->
+  <div id="scenario-list"></div>
+
+  <div class="closed-banner" id="closed-banner">
+    <div class="cb-icon">✅</div>
+    <div class="cb-title">Voting Complete</div>
+    <div class="cb-sub">Results are live on the main screen!</div>
+  </div>
+
+  <div class="thanks-banner" id="thanks-banner">
+    🎉 Thanks for voting! Watch the live screen for results.
+  </div>
+</div>
+
+<div id="ws-lost">⚠ Connection lost — reconnecting…</div>
+
+<script>
+const SCENARIOS = [
+  { id: "A", name: "Helios Steel Works",    loc: "Scunthorpe, North Lincolnshire", color: "#005591", glow: "rgba(0,85,145,0.2)" },
+  { id: "B", name: "BioPharm Solutions",    loc: "Grimsby, Lincolnshire",          color: "#00bcd4", glow: "rgba(0,188,212,0.2)" },
+  { id: "C", name: "CryoMed Hospital Trust",loc: "Hull, East Yorkshire",           color: "#ef4444", glow: "rgba(239,68,68,0.2)" },
+];
+
+// ── Persistent session ────────────────────────────────────────────────────────
+let sessionId = sessionStorage.getItem("lena_session_id");
+if (!sessionId) {
+  sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  sessionStorage.setItem("lena_session_id", sessionId);
+}
+let hasVoted = sessionStorage.getItem("lena_my_vote");
+
+// ── Build DOM ─────────────────────────────────────────────────────────────────
+function buildUI() {
+  const list = document.getElementById("scenario-list");
+  SCENARIOS.forEach(s => {
+    const isVoted = hasVoted === s.id;
+    list.innerHTML += `
+    <div class="scenario-card${isVoted ? " voted" : ""}" id="card-${s.id}"
+         style="${isVoted ? `border-color:${s.color};box-shadow:0 0 0 3px ${s.glow}` : ""}">
+      <div class="sc-top">
+        <div class="sc-left">
+          <div class="sc-avatar" style="background:${s.color}">${s.id}</div>
+          <div>
+            <div class="sc-name">${s.name}</div>
+            <div class="sc-loc">${s.loc}</div>
+          </div>
+        </div>
+        <span class="check-icon" style="color:${s.color}">✓</span>
+      </div>
+      <div class="sc-bottom">
+        <div class="sc-stats">
+          <div class="sc-nums">
+            <span id="v-${s.id}" style="color:${s.color};font-weight:700">0 votes</span>
+            <span id="p-${s.id}" style="color:${s.color};font-weight:800">0%</span>
+          </div>
+          <div class="sc-bar-track">
+            <div class="sc-bar-fill" id="b-${s.id}" style="background:${s.color};width:0%"></div>
+          </div>
+        </div>
+        <button class="vote-btn" id="vbtn-${s.id}"
+                style="background:${s.color};box-shadow:0 3px 12px ${s.glow}"
+                onclick="castVote('${s.id}')">Vote</button>
+        <div class="voted-label" style="background:${s.color}">✓ Voted</div>
+      </div>
+    </div>`;
+  });
+}
+
+// ── Apply state ───────────────────────────────────────────────────────────────
+let currentState = null;
+
+function applyState(state) {
+  currentState = state;
+  const total = state.A + state.B + state.C;
+
+  document.getElementById("total-label").textContent = `${total} vote${total !== 1 ? "s" : ""} cast`;
+  document.getElementById("status-dot").className = state.closed ? "status-dot closed" : "status-dot";
+  document.getElementById("vote-status").textContent = state.closed ? "Voting closed" : "Voting open";
+
+  SCENARIOS.forEach(s => {
+    const v   = state[s.id] ?? 0;
+    const pct = total > 0 ? Math.round((v / total) * 100) : 0;
+    document.getElementById("v-" + s.id).textContent = `${v} vote${v !== 1 ? "s" : ""}`;
+    document.getElementById("p-" + s.id).textContent = pct + "%";
+    document.getElementById("b-" + s.id).style.width = pct + "%";
+
+    const btn = document.getElementById("vbtn-" + s.id);
+    if (btn) btn.disabled = !!hasVoted || state.closed;
+  });
+
+  if (state.closed) {
+    document.getElementById("main-title").textContent = hasVoted ? "Your vote is in!" : "Voting Closed";
+    document.getElementById("main-sub").textContent = "Voting has been closed. See results on the main screen.";
+    document.getElementById("closed-banner").className = "closed-banner show";
+  } else if (hasVoted) {
+    document.getElementById("main-title").textContent = "Your vote is in!";
+    document.getElementById("main-sub").textContent = `You voted for Scenario ${hasVoted} — thank you!`;
+    showThanks();
+  }
+}
+
+function showThanks() {
+  const tb = document.getElementById("thanks-banner");
+  tb.className = "thanks-banner show";
+  tb.style.background = "rgba(0,188,212,0.08)";
+  tb.style.color = "#00bcd4";
+  tb.style.border = "1px solid rgba(0,188,212,0.2)";
+}
+
+// ── Cast vote ─────────────────────────────────────────────────────────────────
+function castVote(id) {
+  if (hasVoted || !ws || ws.readyState !== 1) return;
+  if (currentState?.closed) return;
+
+  ws.send(JSON.stringify({ type: "vote", scenario: id, sessionId }));
+  hasVoted = id;
+  sessionStorage.setItem("lena_my_vote", id);
+
+  const s    = SCENARIOS.find(x => x.id === id);
+  const card = document.getElementById("card-" + id);
+  card.classList.add("voted");
+  card.style.borderColor = s.color;
+  card.style.boxShadow   = `0 0 0 3px ${s.glow}`;
+
+  SCENARIOS.forEach(sc => {
+    const btn = document.getElementById("vbtn-" + sc.id);
+    if (btn) btn.disabled = true;
+  });
+
+  document.getElementById("main-title").textContent = "Your vote is in!";
+  document.getElementById("main-sub").textContent = `You voted for Scenario ${id} — thank you!`;
+  showThanks();
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+let ws;
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${proto}//${location.host}`);
+  ws.onopen  = () => document.getElementById("ws-lost").style.display = "none";
+  ws.onclose = () => {
+    document.getElementById("ws-lost").style.display = "block";
+    setTimeout(connect, 2000);
+  };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "state")  applyState(msg.state);
+    if (msg.type === "error" && msg.reason === "already_voted") {
+      hasVoted = sessionStorage.getItem("lena_my_vote") || "?";
+    }
+  };
+}
+
+buildUI();
+connect();
+</script>
+</body>
+</html>

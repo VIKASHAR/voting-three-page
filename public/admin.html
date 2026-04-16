@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — LENA Supply Chain Vote</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f1f5f9;
+      --surface: #ffffff;
+      --card:    #ffffff;
+      --border:  rgba(0,0,0,0.09);
+      --muted:   rgba(0,0,0,0.05);
+      --text:    #0f172a;
+      --sub:     rgba(15,23,42,0.52);
+      --blue:    #005591;
+      --cyan:    #00bcd4;
+      --amber:   #f59e0b;
+      --red:     #ef4444;
+      --green:   #22c55e;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "DM Sans", "Segoe UI", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    /* ── Panel ── */
+    .panel {
+      width: 100%;
+      max-width: 520px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    /* ── Header ── */
+    .panel-header {
+      padding: 24px 28px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, #005591 0%, #00bcd4 100%);
+    }
+    .logo-text {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: #fff;
+    }
+    .logo-text span { opacity: 0.8; font-weight: 400; }
+    .admin-badge {
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      border-radius: 99px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    /* ── Status bar ── */
+    .status-bar {
+      padding: 14px 28px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+    }
+    .status-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+    .status-dot.closed  { background: var(--amber); animation: none; }
+    .status-dot.offline { background: var(--red);   animation: none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .status-text { font-size: 13px; font-weight: 600; color: var(--sub); }
+    .status-text strong { color: var(--text); }
+    .total-pill {
+      margin-left: auto;
+      background: rgba(0,85,145,0.08);
+      border: 1px solid rgba(0,85,145,0.15);
+      border-radius: 99px;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: monospace;
+      color: var(--blue);
+    }
+
+    /* ── Vote tally ── */
+    .tally {
+      padding: 18px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .tally-row { display: flex; align-items: center; gap: 12px; }
+    .tally-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 900; color: #fff; flex-shrink: 0;
+    }
+    .tally-name {
+      font-size: 13px; font-weight: 600; flex: 1; min-width: 0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--text);
+    }
+    .tally-bar-wrap { flex: 1; }
+    .tally-track { height: 8px; border-radius: 99px; background: var(--muted); overflow: hidden; }
+    .tally-fill  { height: 100%; border-radius: 99px; transition: width 0.5s ease; min-width: 0; }
+    .tally-count { font-size: 13px; font-weight: 900; font-family: monospace; flex-shrink: 0; width: 36px; text-align: right; }
+    .tally-pct   { font-size: 11px; font-weight: 700; font-family: monospace; flex-shrink: 0; width: 32px; text-align: right; color: var(--sub); }
+
+    /* ── Launch URL input ── */
+    .url-section {
+      padding: 18px 28px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .url-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--sub); margin-bottom: 8px;
+    }
+    .url-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-family: monospace; font-size: 13px; color: var(--text);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .url-input::placeholder { color: rgba(15,23,42,0.3); }
+    .url-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(0,188,212,0.12);
+    }
+
+    /* ── Action buttons ── */
+    .actions {
+      padding: 22px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      background: var(--surface);
+    }
+    .btn {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 15px 20px;
+      border: none; border-radius: 14px; cursor: pointer;
+      font-family: inherit; font-size: 15px; font-weight: 700;
+      letter-spacing: 0.01em;
+      transition: transform 0.12s, opacity 0.2s, box-shadow 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+
+    .btn-close {
+      background: var(--green); color: #fff;
+      box-shadow: 0 4px 16px rgba(34,197,94,0.3);
+    }
+    .btn-close.is-closed {
+      background: rgba(34,197,94,0.1); color: var(--green);
+      border: 1px solid rgba(34,197,94,0.25); box-shadow: none;
+    }
+    .btn-reset {
+      background: var(--amber); color: #fff;
+      box-shadow: 0 4px 16px rgba(245,158,11,0.3);
+    }
+    .btn-launch {
+      background: linear-gradient(135deg, #005591 0%, #00bcd4 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(0,188,212,0.3);
+    }
+    .btn-launch:disabled {
+      background: var(--muted); color: var(--sub); box-shadow: none;
+    }
+    .btn-icon { font-size: 17px; }
+
+    /* ── Nav links ── */
+    .nav-links {
+      padding: 14px 28px 22px;
+      display: flex; gap: 8px; justify-content: center;
+      background: var(--surface);
+    }
+    .nav-link {
+      font-size: 12px; font-weight: 600; color: var(--sub);
+      text-decoration: none; padding: 6px 14px;
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--bg);
+      transition: color 0.2s, background 0.2s, border-color 0.2s;
+    }
+    .nav-link:hover {
+      color: var(--blue); background: rgba(0,85,145,0.06);
+      border-color: rgba(0,85,145,0.2);
+    }
+
+    /* ── Launched overlay ── */
+    .launched-overlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(248,250,252,0.9);
+      border-radius: 24px;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 10px; z-index: 10;
+      backdrop-filter: blur(4px);
+    }
+    .launched-overlay.show { display: flex; }
+    .launched-icon  { font-size: 40px; }
+    .launched-text  { font-size: 18px; font-weight: 900; color: var(--blue); }
+    .launched-sub   { font-size: 13px; color: var(--sub); }
+
+    /* ── WS banner ── */
+    #ws-lost {
+      display: none;
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(239,68,68,0.9); color: #fff;
+      padding: 10px 22px; border-radius: 99px; font-size: 13px; font-weight: 700;
+      backdrop-filter: blur(8px); z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+<div class="panel">
+
+  <!-- Launched overlay -->
+  <div class="launched-overlay" id="launched-overlay">
+    <div class="launched-icon">🚀</div>
+    <div class="launched-text">Supply Chain Launched!</div>
+    <div class="launched-sub">Display screen is now showing the live session</div>
+    <button class="btn btn-reset" style="margin-top:18px;width:auto;padding:10px 26px;font-size:13px" onclick="sendReset()">
+      ↺ Reset &amp; Start Over
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="panel-header">
+    <div class="logo-text">LENA <span>Admin</span></div>
+    <div class="admin-badge">Control Panel</div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar">
+    <div class="status-dot" id="status-dot"></div>
+    <div class="status-text"><strong id="status-text">Connecting…</strong></div>
+    <div class="total-pill" id="total-pill">0 votes</div>
+  </div>
+
+  <!-- Tally -->
+  <div class="tally" id="tally-container"></div>
+
+  <!-- Launch URL -->
+  <div class="url-section">
+    <div class="url-label">Supply Chain Launch URL</div>
+    <input type="url" class="url-input" id="launch-url"
+           placeholder="https://your-supply-chain-url.com" />
+  </div>
+
+  <!-- Buttons -->
+  <div class="actions">
+    <button class="btn btn-close" id="btn-close" disabled>
+      <span class="btn-icon">✓</span> Close Voting
+    </button>
+    <button class="btn btn-reset" id="btn-reset">
+      <span class="btn-icon">↺</span> Reset Voting
+    </button>
+    <button class="btn btn-launch" id="btn-launch" disabled>
+      <span class="btn-icon">🚀</span> Launch Supply Chain
+    </button>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav-links">
+    <a class="nav-link" href="/vote"    target="_blank">↗ Voting Page</a>
+    <a class="nav-link" href="/display" target="_blank">↗ Display Page</a>
+  </div>
+
+</div>
+
+<div id="ws-lost">⚠ Connection lost — reconnecting…</div>
+
+<script>
+const SCENARIOS = [
+  { id: "A", name: "Helios Steel Works",    loc: "Scunthorpe",  color: "#005591" },
+  { id: "B", name: "BioPharm Solutions",    loc: "Grimsby",     color: "#00bcd4" },
+  { id: "C", name: "CryoMed Hospital Trust",loc: "Hull",        color: "#ef4444" },
+];
+
+// ── Build tally ───────────────────────────────────────────────────────────────
+const tally = document.getElementById("tally-container");
+SCENARIOS.forEach(s => {
+  tally.innerHTML += `
+  <div class="tally-row">
+    <div class="tally-dot" style="background:${s.color}">${s.id}</div>
+    <div class="tally-name">${s.name}</div>
+    <div class="tally-bar-wrap">
+      <div class="tally-track">
+        <div class="tally-fill" id="tf-${s.id}" style="background:${s.color};width:0%"></div>
+      </div>
+    </div>
+    <div class="tally-count" id="tc-${s.id}" style="color:${s.color}">0</div>
+    <div class="tally-pct"   id="tp-${s.id}">0%</div>
+  </div>`;
+});
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentState = null;
+
+function applyState(state) {
+  currentState = state;
+  const total = state.A + state.B + state.C;
+
+  document.getElementById("total-pill").textContent = total === 1 ? "1 vote" : `${total} votes`;
+
+  const dot = document.getElementById("status-dot");
+  const txt = document.getElementById("status-text");
+
+  if (state.launched) {
+    dot.className = "status-dot closed";
+    txt.textContent = "Launched — display is live";
+    document.getElementById("launched-overlay").classList.add("show");
+  } else if (state.closed) {
+    dot.className = "status-dot closed";
+    txt.textContent = `Voting closed · ${total} votes`;
+    document.getElementById("launched-overlay").classList.remove("show");
+  } else {
+    dot.className = "status-dot";
+    txt.textContent = `Voting open · ${total} votes`;
+    document.getElementById("launched-overlay").classList.remove("show");
+  }
+
+  SCENARIOS.forEach(s => {
+    const v   = state[s.id] ?? 0;
+    const pct = total > 0 ? Math.round((v / total) * 100) : 0;
+    document.getElementById("tc-" + s.id).textContent = v;
+    document.getElementById("tp-" + s.id).textContent = pct + "%";
+    document.getElementById("tf-" + s.id).style.width = pct + "%";
+  });
+
+  const btnClose  = document.getElementById("btn-close");
+  const btnLaunch = document.getElementById("btn-launch");
+
+  if (state.closed) {
+    btnClose.innerHTML = '<span class="btn-icon">✓</span> Voting Closed';
+    btnClose.disabled  = true;
+    btnClose.className = "btn btn-close is-closed";
+    btnLaunch.disabled = state.launched;
+  } else {
+    btnClose.innerHTML = '<span class="btn-icon">✓</span> Close Voting';
+    btnClose.disabled  = total === 0;
+    btnClose.className = "btn btn-close";
+    btnLaunch.disabled = true;
+  }
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function sendClose()  { ws?.readyState === 1 && ws.send(JSON.stringify({ type: "close" })); }
+function sendReset()  { ws?.readyState === 1 && ws.send(JSON.stringify({ type: "reset" })); }
+function sendLaunch() {
+  const url = document.getElementById("launch-url").value.trim();
+  if (!url) { document.getElementById("launch-url").focus(); return; }
+  ws?.readyState === 1 && ws.send(JSON.stringify({ type: "launch", url }));
+}
+
+document.getElementById("btn-close").addEventListener("click",  sendClose);
+document.getElementById("btn-reset").addEventListener("click",  sendReset);
+document.getElementById("btn-launch").addEventListener("click", sendLaunch);
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+let ws;
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${proto}//${location.host}`);
+  ws.onopen  = () => {
+    document.getElementById("ws-lost").style.display = "none";
+    document.getElementById("status-dot").className  = "status-dot";
+  };
+  ws.onclose = () => {
+    document.getElementById("ws-lost").style.display = "block";
+    document.getElementById("status-dot").className  = "status-dot offline";
+    setTimeout(connect, 2000);
+  };
+  ws.onmessage = (e) => {
+    const msg = JSON.parse(e.data);
+    if (msg.type === "state") applyState(msg.state);
+  };
+}
+connect();
+</script>
+</body>
+</html>
